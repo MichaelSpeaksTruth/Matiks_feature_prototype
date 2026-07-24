@@ -357,7 +357,7 @@ async def moderate_post(
                 },
             ],
             temperature     = 0,        # deterministic verdicts
-            max_tokens      = 128,      # allow slightly more tokens for possible formatting wrapping
+            max_tokens      = 1024,     # allow sufficient tokens for internal reasoning blocks (<think>...) + JSON object
         )
     except HTTPException:
         raise
