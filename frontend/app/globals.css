@@ -1,0 +1,87 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* ─── Design tokens ──────────────────────────────────────────────────────── */
+:root {
+  --black:        #090909;
+  --black-soft:   #141414;
+  --black-card:   #1c1c1c;
+  --black-hover:  #222222;
+  --white:        #ffffff;
+  --white-dim:    #b0b0b0;
+  --white-muted:  #555555;
+  --mint:         #7fffd4;   /* aquamarine — used sparingly */
+  --mint-dim:     rgba(127,255,212,0.12);
+  --mint-border:  rgba(127,255,212,0.22);
+  --border:       rgba(255,255,255,0.07);
+  --border-soft:  rgba(255,255,255,0.04);
+}
+
+/* ─── Base reset ─────────────────────────────────────────────────────────── */
+*, *::before, *::after { box-sizing: border-box; }
+
+html, body {
+  margin: 0;
+  padding: 0;
+  height: 100%;
+  font-family: 'Inter', system-ui, -apple-system, sans-serif;
+  background-color: var(--black);
+  color: var(--white);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* ─── Scrollbar ──────────────────────────────────────────────────────────── */
+::-webkit-scrollbar        { width: 5px; }
+::-webkit-scrollbar-track  { background: var(--black); }
+::-webkit-scrollbar-thumb  { background: #2a2a2a; border-radius: 99px; }
+
+/* ─── Glass card ─────────────────────────────────────────────────────────── */
+.glass-card {
+  background: var(--black-card);
+  border: 1px solid var(--border);
+}
+
+/* ─── Drop zone drag-active state ────────────────────────────────────────── */
+.drop-active {
+  border-color: var(--mint) !important;
+  background: var(--mint-dim) !important;
+  transform: scale(1.004);
+}
+
+/* ─── Shimmer skeleton ───────────────────────────────────────────────────── */
+.shimmer-bar {
+  position: relative;
+  overflow: hidden;
+  background: rgba(255,255,255,0.05);
+  border-radius: 5px;
+}
+.shimmer-bar::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  transform: translateX(-100%);
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.06), transparent);
+  animation: sweep 1.7s infinite;
+}
+@keyframes sweep {
+  100% { transform: translateX(100%); }
+}
+
+/* ─── Card entrance ──────────────────────────────────────────────────────── */
+@keyframes riseIn {
+  from { opacity: 0; transform: translateY(18px); }
+  to   { opacity: 1; transform: translateY(0);    }
+}
+.rise-in { animation: riseIn 0.42s cubic-bezier(0.16,1,0.3,1) forwards; }
+
+/* ─── Pulsing dot (flagged indicator) ───────────────────────────────────── */
+@keyframes dotPulse {
+  0%,100% { opacity: 1;   transform: scale(1);    }
+  50%      { opacity: 0.3; transform: scale(0.82); }
+}
+.dot-pulse { animation: dotPulse 1.4s ease-in-out infinite; }
+
+/* ─── Focus ring ─────────────────────────────────────────────────────────── */
+:focus-visible { outline: 2px solid var(--mint); outline-offset: 2px; }

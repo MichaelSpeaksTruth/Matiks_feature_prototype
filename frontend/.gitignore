@@ -1,0 +1,70 @@
+# ─────────────────────────────────────────────────────────────────────────────
+# .gitignore — Next.js Frontend
+# Matiks Content Moderation Dashboard
+# ─────────────────────────────────────────────────────────────────────────────
+
+# ── Secrets & environment — NEVER commit these ────────────────────────────────
+.env
+.env.local
+.env.development
+.env.development.local
+.env.test
+.env.test.local
+.env.production
+.env.production.local
+.env.*.local
+*.env
+.envrc
+
+# ── Next.js build output ──────────────────────────────────────────────────────
+.next/
+out/
+dist/
+build/
+
+# ── Node modules ──────────────────────────────────────────────────────────────
+node_modules/
+.npm
+.yarn/
+yarn.lock
+package-lock.json
+pnpm-lock.yaml
+
+# ── TypeScript ────────────────────────────────────────────────────────────────
+*.tsbuildinfo
+next-env.d.ts
+
+# ── Testing ───────────────────────────────────────────────────────────────────
+coverage/
+.nyc_output/
+junit.xml
+test-results/
+playwright-report/
+.playwright/
+
+# ── IDE & editors ─────────────────────────────────────────────────────────────
+.idea/
+.vscode/
+*.swp
+*.swo
+.project
+
+# ── Vercel ────────────────────────────────────────────────────────────────────
+.vercel/
+
+# ── Logs ──────────────────────────────────────────────────────────────────────
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+*.log
+logs/
+
+# ── OS & temporary files ──────────────────────────────────────────────────────
+.DS_Store
+Thumbs.db
+.cache/
+tmp/
+temp/
+.turbo/
+*.bak
+*.orig
