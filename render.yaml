@@ -13,6 +13,6 @@ services:
       - key: GROQ_API_KEY
         sync: false          # set manually in Render dashboard — never committed
       - key: GROQ_MODEL
-        value: meta-llama/llama-4-maverick-17b-128e-instruct
+        value: llama-3.2-90b-vision-preview
       - key: FRONTEND_URL
         sync: false          # set manually after Vercel deployment

@@ -159,7 +159,7 @@ function NavBar() {
 function PipelineBar() {
   const steps = [
     { n: "1", title: "Upload",  sub: "Image + Caption"  },
-    { n: "2", title: "Vision",  sub: "Llama 4 Maverick" },
+    { n: "2", title: "Vision",  sub: "AI Engine"        },
     { n: "3", title: "Verdict", sub: "JSON Response"    },
   ];
   return (
@@ -512,7 +512,7 @@ export default function ModerationPage() {
             ProtoMatiks <span style={{ color: C.mint }}>Moderation</span>
           </h1>
           <p className="text-[15px] max-w-sm mx-auto leading-relaxed" style={{ color: C.whiteDim }}>
-            Upload an image and optional caption. Groq Vision analyses it and returns a clear{" "}
+            Upload an image and optional caption. Our engine analyses it and returns a clear{" "}
             <strong style={{ color: C.white }}>Safe</strong> or{" "}
             <strong style={{ color: C.white }}>Flagged</strong> verdict instantly.
           </p>
@@ -590,7 +590,7 @@ export default function ModerationPage() {
       </main>
 
       <footer className="py-8 text-center text-xs" style={{ color: C.whiteMuted }}>
-        ProtoMatiks Content Moderation · Powered by Groq Vision AI · Prototype
+        ProtoMatiks Content Moderation · Powered by AI Engine · Prototype
       </footer>
     </div>
   );
