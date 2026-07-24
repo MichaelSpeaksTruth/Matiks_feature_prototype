@@ -179,23 +179,45 @@ def _parse_llm_response(raw: str) -> ModerationResult:
         data: dict = json.loads(cleaned)
     except (json.JSONDecodeError, ValueError):
         try:
-            # Second attempt: parse Python-like dict (handles single quotes or unescaped characters)
+            # Second attempt: parse Python-like dict (handles single quotes)
             import ast
             data = ast.literal_eval(cleaned)
             if not isinstance(data, dict):
                 raise ValueError("Parsed object is not a dictionary")
         except Exception as e:
-            logger.error("JSON and ast.literal_eval parsing failed: %s | Raw output was: %r | Cleaned was: %r", e, raw, cleaned)
+            logger.warning("JSON and ast.literal_eval parsing failed: %s. Using regex extraction fallback.", e)
             
-            # Fallback keyword scan if structure is completely broken
-            lower = cleaned.lower()
-            flagged = "political" in lower or "flagged" in lower or '"yes"' in lower
+            # Third attempt: Regex key-value extraction (bulletproof fallback for broken syntax)
+            import re
             
+            intent_match = re.search(r'["\']?intent["\']?\s*:\s*["\']([^"\']+)["\']', cleaned, re.IGNORECASE)
+            intent = intent_match.group(1).strip() if intent_match else "None"
+
+            is_flagged_match = re.search(r'["\']?is_flagged["\']?\s*:\s*["\'](Yes|No|yes|no)["\']', cleaned, re.IGNORECASE)
+            is_flagged = is_flagged_match.group(1).strip().capitalize() if is_flagged_match else "No"
+
+            reason_tag_match = re.search(r'["\']?reason_tag["\']?\s*:\s*["\']([^"\']+)["\']', cleaned, re.IGNORECASE)
+            reason_tag = reason_tag_match.group(1).strip().lower() if reason_tag_match else "none"
+
+            flagged_items_match = re.search(r'["\']?flagged_items["\']?\s*:\s*\[(.*?)\]', cleaned, re.IGNORECASE)
+            flagged_items = []
+            if flagged_items_match:
+                items_raw = flagged_items_match.group(1)
+                flagged_items = re.findall(r'["\']([^"\']+)["\']', items_raw)
+
+            # Keyword-based fallback safety check
+            lower_raw = cleaned.lower()
+            if "political" in lower_raw or "flagged" in lower_raw:
+                is_flagged = "Yes"
+                reason_tag = "political"
+                if not flagged_items:
+                    flagged_items = ["potential political references (extracted)"]
+
             return ModerationResult(
-                reason_tag = "political" if flagged else "none",
-                is_flagged = "Yes"       if flagged else "No",
-                intent = "Fallback analysis due to parsing error",
-                flagged_items = ["potential political references (fallback scan)"] if flagged else []
+                reason_tag=reason_tag,
+                is_flagged=is_flagged,
+                intent=intent if intent != "None" else "Moderation evaluation",
+                flagged_items=flagged_items
             )
 
     try:
