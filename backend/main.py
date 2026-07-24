@@ -162,13 +162,17 @@ def _get_client() -> Groq:
 def _parse_llm_response(raw: str) -> ModerationResult:
     """
     Clean and parse JSON from the model's reply.
-    Uses regex to clean out markdown wrappers and backticks.
-    Falls back to a SAFE default if JSON parsing completely fails.
+    Locates the outermost curly braces to isolate the JSON block,
+    ignoring any conversational prefix/suffix text.
     """
-    import re
+    cleaned = raw.strip()
     
-    # 1. Clean out markdown code blocks and whitespace
-    cleaned = re.sub(r'```(?:json)?\s*|\s*```', '', raw).strip()
+    # 1. Locate the JSON object boundaries
+    start_idx = cleaned.find("{")
+    end_idx = cleaned.rfind("}")
+    
+    if start_idx != -1 and end_idx != -1:
+        cleaned = cleaned[start_idx:end_idx + 1]
 
     try:
         data: dict = json.loads(cleaned)
@@ -199,13 +203,17 @@ def _parse_llm_response(raw: str) -> ModerationResult:
         )
 
     except (json.JSONDecodeError, KeyError, ValueError) as e:
-        logger.error("JSON parse failed: %s | Raw output was: %r", e, raw)
-        # Defaults to safe on parsing error to avoid false positives
+        logger.error("JSON parse failed: %s | Raw output was: %r | Cleaned was: %r", e, raw, cleaned)
+        
+        # Fallback keyword scan if JSON structure is completely broken
+        lower = cleaned.lower()
+        flagged = "political" in lower or "flagged" in lower or '"yes"' in lower
+        
         return ModerationResult(
-            reason_tag = "none",
-            is_flagged = "No",
-            intent = "Parse error - defaulting to safe",
-            flagged_items = []
+            reason_tag = "political" if flagged else "none",
+            is_flagged = "Yes"       if flagged else "No",
+            intent = "Fallback analysis due to parsing error",
+            flagged_items = ["potential political references (fallback scan)"] if flagged else []
         )
 
 # ─────────────────────────────────────────────────────────────────────────────
