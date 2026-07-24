@@ -44,7 +44,7 @@ interface ModerationResult {
 type AppState = "idle" | "loading" | "success" | "error";
 
 // ─────────────────────────────────────────────────────────────────────────────
-// SVG icon props — cls for className, style for inline styles
+// SVG icon props: cls for className, style for inline styles
 // ─────────────────────────────────────────────────────────────────────────────
 interface IconProps {
   cls?: string;
@@ -254,7 +254,7 @@ function DropZone({ file, preview, dragging, onFile, onDragOver, onDragLeave, on
             <p className="text-sm mt-1.5" style={{ color: C.whiteMuted }}>
               or <span className="font-medium underline-offset-2 hover:underline" style={{ color: C.mint }}>click to browse</span>
             </p>
-            <p className="text-xs mt-3" style={{ color: C.whiteMuted }}>JPEG · PNG · WebP · GIF — max 20 MB</p>
+            <p className="text-xs mt-3" style={{ color: C.whiteMuted }}>JPEG · PNG · WebP · GIF: max 20 MB</p>
           </div>
         </div>
       )}
@@ -328,7 +328,7 @@ function ResultCard({ result }: { result: ModerationResult }) {
     <div
       id="result-card"
       role="region"
-      aria-label={`Moderation result: ${flagged ? "Flagged — Political Content" : "Safe"}`}
+      aria-label={`Moderation result: ${flagged ? "Flagged: Political Content" : "Safe"}`}
       className="rise-in rounded-2xl overflow-hidden"
       style={{
         border: `1px solid ${accentBorder}`,
@@ -354,7 +354,7 @@ function ResultCard({ result }: { result: ModerationResult }) {
             {flagged ? "Content Flagged" : "Content Safe"}
           </p>
           <p className="text-xl font-black leading-tight" style={{ color: C.white }}>
-            {flagged ? "🚩 Flagged: Political Content" : "✅ Safe — No Political Content"}
+            {flagged ? "🚩 Flagged: Political Content" : "✅ Safe: No Political Content"}
           </p>
         </div>
         <div
