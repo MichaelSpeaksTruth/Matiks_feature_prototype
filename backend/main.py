@@ -52,7 +52,7 @@ logger = logging.getLogger("protomatiks.moderation")
 GROQ_API_KEY: str = os.environ.get("GROQ_API_KEY", "")
 GROQ_MODEL:   str = os.environ.get(
     "GROQ_MODEL",
-    "llama-3.2-90b-vision-preview",   # default: multimodal
+    "qwen/qwen3.6-27b",   # default
 )
 FRONTEND_URL: str = os.environ.get("FRONTEND_URL", "")
 MAX_IMAGE_BYTES: int = 20 * 1024 * 1024  # 20 MB hard cap
