@@ -394,8 +394,8 @@ function ResultCard({ result }: { result: ModerationResult }) {
           }
           <p className="text-sm leading-relaxed" style={{ color: C.whiteDim }}>
             {flagged
-              ? "The Groq Vision model identified political content in this post. It has been flagged and held for human review before publication."
-              : "The Groq Vision model found no political content in this post. It is cleared for publication on the ProtoMatiks platform."
+              ? "The AI engine identified political content in this post. It has been flagged and held for human review before publication."
+              : "The AI engine found no political content in this post. It is cleared for publication on the ProtoMatiks platform."
             }
           </p>
         </div>

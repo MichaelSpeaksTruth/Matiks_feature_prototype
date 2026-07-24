@@ -216,7 +216,7 @@ async def moderate_post(
 
     1. Validates the MIME type and file size.
     2. Encodes the image to a base64 data URI.
-    3. Sends both to the Groq Vision model with a strict JSON system prompt.
+    3. Sends both to the AI engine with a strict JSON system prompt.
     4. Returns `{ "reason_tag": "political"|"none", "is_flagged": "Yes"|"No" }`.
     """
 
