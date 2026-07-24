@@ -205,14 +205,7 @@ def _parse_llm_response(raw: str) -> ModerationResult:
                 items_raw = flagged_items_match.group(1)
                 flagged_items = re.findall(r'["\']([^"\']+)["\']', items_raw)
 
-            # Keyword-based fallback safety check
-            lower_raw = cleaned.lower()
-            if "political" in lower_raw or "flagged" in lower_raw:
-                is_flagged = "Yes"
-                reason_tag = "political"
-                if not flagged_items:
-                    flagged_items = ["potential political references (extracted)"]
-
+            # Return the values extracted by regex directly
             return ModerationResult(
                 reason_tag=reason_tag,
                 is_flagged=is_flagged,
