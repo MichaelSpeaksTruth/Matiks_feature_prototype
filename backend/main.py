@@ -1,6 +1,6 @@
 """
-Matiks Political Content Moderation Backend — v3
-=================================================
+ProtoMatiks Political Content Moderation Backend — v3
+=====================================================
 Lightweight FastAPI proxy to Groq Vision API.
 
 Memory footprint : ~50 MB  (safe on Render 512 MB free tier)
@@ -44,7 +44,7 @@ logging.basicConfig(
     level=logging.INFO,
     format="%(asctime)s  %(levelname)-8s  %(name)s  %(message)s",
 )
-logger = logging.getLogger("matiks.moderation")
+logger = logging.getLogger("protomatiks.moderation")
 
 # ─────────────────────────────────────────────────────────────────────────────
 # Configuration  (set via environment variables — never hard-code secrets)
@@ -67,8 +67,8 @@ if not GROQ_API_KEY:
 # FastAPI application
 # ─────────────────────────────────────────────────────────────────────────────
 app = FastAPI(
-    title       = "Matiks Content Moderation API",
-    description = "Groq Vision-powered political content moderation for the Matiks platform.",
+    title       = "ProtoMatiks Content Moderation API",
+    description = "Groq Vision-powered political content moderation for the ProtoMatiks platform.",
     version     = "3.0.0",
     docs_url    = "/docs",
     redoc_url   = "/redoc",
@@ -104,7 +104,7 @@ class ModerationResult(BaseModel):
 # Prompt engineering
 # ─────────────────────────────────────────────────────────────────────────────
 _SYSTEM_PROMPT = """\
-You are a strict AI content moderator for the Matiks platform.
+You are a strict AI content moderator for the ProtoMatiks platform.
 
 Your ONLY task is to examine the provided image and any accompanying text caption,
 then determine whether the post contains POLITICAL content.
@@ -188,7 +188,7 @@ def _parse_llm_response(raw: str) -> ModerationResult:
 # ─────────────────────────────────────────────────────────────────────────────
 @app.get("/", tags=["health"], summary="Root ping")
 async def root():
-    return {"status": "ok", "service": "Matiks Moderation API", "version": "3.0.0"}
+    return {"status": "ok", "service": "ProtoMatiks Moderation API", "version": "3.0.0"}
 
 
 @app.get("/health", tags=["health"], summary="Health check")

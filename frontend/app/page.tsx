@@ -142,9 +142,9 @@ function NavBar() {
             />
           </div>
           <div className="leading-none">
-            <p className="text-[15px] font-extrabold tracking-tight" style={{ color: C.white }}>Matiks</p>
+            <p className="text-[15px] font-extrabold tracking-tight" style={{ color: C.white }}>ProtoMatiks</p>
             <p className="text-[9px] uppercase tracking-[0.16em] font-medium" style={{ color: C.whiteMuted }}>
-              Matiks suggestive feature prototype by Anurag
+              ProtoMatiks suggestive feature prototype by Anurag
             </p>
           </div>
         </div>
@@ -395,7 +395,7 @@ function ResultCard({ result }: { result: ModerationResult }) {
           <p className="text-sm leading-relaxed" style={{ color: C.whiteDim }}>
             {flagged
               ? "The Groq Vision model identified political content in this post. It has been flagged and held for human review before publication."
-              : "The Groq Vision model found no political content in this post. It is cleared for publication on the Matiks platform."
+              : "The Groq Vision model found no political content in this post. It is cleared for publication on the ProtoMatiks platform."
             }
           </p>
         </div>
@@ -509,7 +509,7 @@ export default function ModerationPage() {
             AI Political Content Moderation
           </div>
           <h1 className="text-4xl sm:text-5xl font-black tracking-tight leading-tight mb-4" style={{ color: C.white }}>
-            Matiks <span style={{ color: C.mint }}>Moderation</span>
+            ProtoMatiks <span style={{ color: C.mint }}>Moderation</span>
           </h1>
           <p className="text-[15px] max-w-sm mx-auto leading-relaxed" style={{ color: C.whiteDim }}>
             Upload an image and optional caption. Groq Vision analyses it and returns a clear{" "}
@@ -590,7 +590,7 @@ export default function ModerationPage() {
       </main>
 
       <footer className="py-8 text-center text-xs" style={{ color: C.whiteMuted }}>
-        Matiks Content Moderation · Powered by Groq Vision AI · Prototype
+        ProtoMatiks Content Moderation · Powered by Groq Vision AI · Prototype
       </footer>
     </div>
   );

@@ -2,12 +2,12 @@ import type { Metadata } from "next";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "Matiks | AI Content Moderation",
+  title: "ProtoMatiks | AI Content Moderation",
   description:
-    "Political content moderation prototype for the Matiks platform. " +
-    "Upload an image and optional caption to get an instant AI moderation verdict.",
-  keywords: ["content moderation", "AI", "political content", "Matiks", "Groq"],
-  authors: [{ name: "Matiks" }],
+    "Political content moderation prototype for the ProtoMatiks platform. " +
+    "Lightweight, real-time vision evaluation proxy using Groq AI.",
+  keywords: ["content moderation", "AI", "political content", "ProtoMatiks", "Groq"],
+  authors: [{ name: "ProtoMatiks" }],
   robots: "noindex, nofollow",
 };
 
