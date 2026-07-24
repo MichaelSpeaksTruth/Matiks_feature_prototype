@@ -1,0 +1,18 @@
+# render.yaml — Render Blueprint
+# Defines the backend service so Render finds the correct root directory.
+# Docs: https://render.com/docs/blueprint-spec
+
+services:
+  - type: web
+    name: matiks-moderation-api
+    runtime: python
+    rootDir: backend
+    buildCommand: pip install -r requirements.txt
+    startCommand: uvicorn main:app --host 0.0.0.0 --port $PORT
+    envVars:
+      - key: GROQ_API_KEY
+        sync: false          # set manually in Render dashboard — never committed
+      - key: GROQ_MODEL
+        value: meta-llama/llama-4-maverick-17b-128e-instruct
+      - key: FRONTEND_URL
+        sync: false          # set manually after Vercel deployment
