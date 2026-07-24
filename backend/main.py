@@ -104,28 +104,13 @@ class ModerationResult(BaseModel):
 # Prompt engineering
 # ─────────────────────────────────────────────────────────────────────────────
 _SYSTEM_PROMPT = """\
-You are a strict AI content moderator for the ProtoMatiks platform.
+You are a strict content moderator. You MUST output ONLY a raw, pure JSON object.
+Do NOT wrap the JSON in markdown formatting, backticks, or code blocks.
+Do NOT output any conversational text.
 
-Your ONLY task is to examine the provided image and any accompanying text caption,
-then determine whether the post contains POLITICAL content.
-
-Political content includes (but is not limited to):
-  • Political campaigns, political advertising, or electioneering material
-  • Politicians, political figures, heads of state, or public officials
-  • Election ballots, polling stations, voting booths, or voter-registration material
-  • Protest movements, political demonstrations, or organised rallies
-  • Political party logos, flags, slogans, or propaganda
-  • Content clearly designed to influence political opinion or drive political action
-
-RESPONSE FORMAT — STRICT
-You MUST reply with ONLY a single valid JSON object, exactly as shown below.
-Do NOT include markdown fences, code blocks, explanations, or any extra text.
-
-If political content IS detected:
-{"reason_tag":"political","is_flagged":"Yes"}
-
-If NO political content is detected:
-{"reason_tag":"none","is_flagged":"No"}
+The JSON must exactly match this structure:
+{"reason_tag": "political", "is_flagged": "Yes"}
+(Or {"reason_tag": "none", "is_flagged": "No"} if clean)
 """
 
 # ─────────────────────────────────────────────────────────────────────────────
@@ -153,12 +138,25 @@ def _get_client() -> Groq:
 # ─────────────────────────────────────────────────────────────────────────────
 def _parse_llm_response(raw: str) -> ModerationResult:
     """
-    Attempt strict JSON parsing of the model's reply.
-    Falls back to keyword scanning if the model disobeys the format
-    (rare with response_format=json_object but handled defensively).
+    Clean and parse JSON from the model's reply.
+    Aggressively strips markdown fences (e.g. ```json ... ```) first.
     """
+    cleaned = raw.strip()
+    
+    # Strip markdown block wrappers if present
+    if cleaned.startswith("```"):
+        # Remove opening fence (including optional language identifier like json)
+        first_newline = cleaned.find("\n")
+        if first_newline != -1:
+            cleaned = cleaned[first_newline:].strip()
+        else:
+            cleaned = cleaned[3:].strip()
+            
+    if cleaned.endswith("```"):
+        cleaned = cleaned[:-3].strip()
+
     try:
-        data: dict = json.loads(raw.strip())
+        data: dict = json.loads(cleaned)
 
         reason_tag_raw  = str(data.get("reason_tag", "none")).strip().lower()
         is_flagged_raw  = str(data.get("is_flagged", "No")).strip()
@@ -175,8 +173,8 @@ def _parse_llm_response(raw: str) -> ModerationResult:
         return ModerationResult(reason_tag=reason_tag, is_flagged=is_flagged)
 
     except (json.JSONDecodeError, KeyError, ValueError):
-        logger.warning("JSON parse failed — falling back to keyword scan. Raw: %r", raw)
-        lower = raw.lower()
+        logger.warning("JSON parse failed — falling back to keyword scan. Raw: %r, Cleaned: %r", raw, cleaned)
+        lower = cleaned.lower()
         flagged = '"yes"' in lower or '"political"' in lower or "political content" in lower
         return ModerationResult(
             reason_tag = "political" if flagged else "none",
@@ -286,8 +284,7 @@ async def moderate_post(
                 },
             ],
             temperature     = 0,        # deterministic verdicts
-            max_tokens      = 64,       # tiny — we only need ~30 chars of JSON
-            response_format = {"type": "json_object"},
+            max_tokens      = 128,      # allow slightly more tokens for possible formatting wrapping
         )
     except HTTPException:
         raise
