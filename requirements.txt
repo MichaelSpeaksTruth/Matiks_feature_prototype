@@ -3,3 +3,7 @@ fastapi==0.111.0
 uvicorn[standard]==0.30.1
 python-multipart==0.0.9
 groq==0.9.0
+
+# Pin httpx to v0.27.0 to prevent incompatibility with older groq SDK versions
+# (newer httpx v0.28.0+ removed the 'proxies' init argument, causing initialization failures)
+httpx==0.27.0
