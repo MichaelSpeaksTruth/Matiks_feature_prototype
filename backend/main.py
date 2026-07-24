@@ -175,8 +175,30 @@ def _parse_llm_response(raw: str) -> ModerationResult:
         cleaned = cleaned[start_idx:end_idx + 1]
 
     try:
+        # First attempt: standard JSON parsing
         data: dict = json.loads(cleaned)
+    except (json.JSONDecodeError, ValueError):
+        try:
+            # Second attempt: parse Python-like dict (handles single quotes or unescaped characters)
+            import ast
+            data = ast.literal_eval(cleaned)
+            if not isinstance(data, dict):
+                raise ValueError("Parsed object is not a dictionary")
+        except Exception as e:
+            logger.error("JSON and ast.literal_eval parsing failed: %s | Raw output was: %r | Cleaned was: %r", e, raw, cleaned)
+            
+            # Fallback keyword scan if structure is completely broken
+            lower = cleaned.lower()
+            flagged = "political" in lower or "flagged" in lower or '"yes"' in lower
+            
+            return ModerationResult(
+                reason_tag = "political" if flagged else "none",
+                is_flagged = "Yes"       if flagged else "No",
+                intent = "Fallback analysis due to parsing error",
+                flagged_items = ["potential political references (fallback scan)"] if flagged else []
+            )
 
+    try:
         intent = str(data.get("intent", "None")).strip()
         flagged_items = data.get("flagged_items", [])
         if not isinstance(flagged_items, list):
@@ -201,19 +223,13 @@ def _parse_llm_response(raw: str) -> ModerationResult:
             intent=intent,
             flagged_items=flagged_items
         )
-
-    except (json.JSONDecodeError, KeyError, ValueError) as e:
-        logger.error("JSON parse failed: %s | Raw output was: %r | Cleaned was: %r", e, raw, cleaned)
-        
-        # Fallback keyword scan if JSON structure is completely broken
-        lower = cleaned.lower()
-        flagged = "political" in lower or "flagged" in lower or '"yes"' in lower
-        
+    except Exception as e:
+        logger.error("Error extracting fields from parsed dictionary: %s", e)
         return ModerationResult(
-            reason_tag = "political" if flagged else "none",
-            is_flagged = "Yes"       if flagged else "No",
-            intent = "Fallback analysis due to parsing error",
-            flagged_items = ["potential political references (fallback scan)"] if flagged else []
+            reason_tag = "none",
+            is_flagged = "No",
+            intent = "Field extraction error - defaulting to safe",
+            flagged_items = []
         )
 
 # ─────────────────────────────────────────────────────────────────────────────
