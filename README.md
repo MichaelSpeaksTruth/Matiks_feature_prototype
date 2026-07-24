@@ -58,6 +58,62 @@ To bypass common LLM output syntax issues without using strict JSON-mode API con
 
 ---
 
+## 💰 Zero-Cost Production Topology
+
+This prototype is engineered as a zero-cost operational model by leveraging free tiers across the cloud stack:
+1. **Frontend:** Hosted on Vercel's hobby tier (free).
+2. **Backend:** Hosted on Render's web service free tier.
+3. **Inference Layer:** Processes calls through the cloud provider's developer free-use tier.
+
+### Keeping the Free Tier Awake (Uptime Robot)
+Render's free tier automatically puts the backend container to sleep after 15 minutes of inactivity, resulting in a 50-second cold-start delay on the next request. 
+* **The Solution:** We set up an external monitor on **Uptime Robot** targeting the backend root endpoint (`https://your-backend.onrender.com/`).
+* **Interval:** Configured to ping the endpoint once every 5 minutes.
+* **Result:** This keep-alive heart beat keeps the Render container warm and active 24/7, eliminating cold-start delays.
+
+---
+
+## 🔮 Extending to Google Cloud Vision API
+
+To scale this project for enterprise loads, you can integrate the **Google Cloud Vision API** as a highly efficient pre-processing or primary analysis layer. 
+
+Here is how you can implement this hybrid pipeline:
+
+```
+                  Uploaded Image + Caption
+                             │
+                             ▼
+              ┌──────────────────────────────┐
+              │  Google Cloud Vision API     │
+              └──────────────┬───────────────┘
+                             ├──────────────────────────────┐
+                             ▼                              ▼
+                    [Text Detection / OCR]         [Label & SafeSearch]
+                    Extracts raw image text        Detects explicit content,
+                    and translations               flags, landmarks
+                             │                              │
+                             └──────────────┬───────────────┘
+                                            ▼
+                             ┌──────────────────────────────┐
+                             │    Consolidated Metadata     │
+                             └──────────────┬───────────────┘
+                                            ▼
+                             ┌──────────────────────────────┐
+                             │      Our AI Engine           │
+                             │   (Context Evaluation)       │
+                             └──────────────┬───────────────┘
+                                            ▼
+                                   Final Verdict JSON
+```
+
+### Why this Hybrid Model is highly efficient:
+1. **Saves Token Bandwidth:** Instead of sending massive high-resolution raw image bytes to a heavy multimodal visual model, you send the image to **Google Cloud Vision API** first. It extracts the raw text (OCR) and objects/labels. You then feed this lightweight *text metadata* directly to our AI engine.
+2. **OCR Universality:** Google Cloud Vision's OCR is extremely fast and natively handles over 50 languages, including handwriting, stylized fonts, and background signs.
+3. **Primary Landmark & Flag Recognition:** Google Cloud Vision automatically detects political landmarks (like parliaments), government logos, or national flags and returns them as labels. 
+4. **Final Intent Classification:** Our AI engine reads the structured text metadata (labels + extracted text + user caption) to determine the final *communicative intent* (e.g. distinguishing a scientific chart showing political labels vs. actual political campaign banners) and generates the verdict JSON.
+
+---
+
 ## 🔒 Security & Secrets Protection
 
 * **Credential Shielding:** All API connection parameters are stored exclusively in the server-side environment (`backend/.env`). No keys are exposed to the client-side browser.
