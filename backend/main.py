@@ -99,6 +99,8 @@ app.add_middleware(
 class ModerationResult(BaseModel):
     reason_tag: str   # "political" | "none"
     is_flagged: str   # "Yes"       | "No"
+    intent: Optional[str] = "None"
+    flagged_items: Optional[list[str]] = []
 
 # ─────────────────────────────────────────────────────────────────────────────
 # Prompt engineering
@@ -107,6 +109,9 @@ _SYSTEM_PROMPT = """
 You are ProtoMatiks' zero-tolerance political content moderator. 
 
 Your core operating principle is POSITIVE PROOF: All content is assumed SAFE by default. You may only flag content if you can extract explicit, verifiable evidence of governance, elections, state actors, or socio-political activism.
+
+CRITICAL: ACADEMIC & TECHNICAL SAFEGUARD
+Scientific data visualizations, graphs, charts, diagrams, engineering schematics, mathematical plots (e.g., Nyquist plots, Bode plots, electrochemical impedance spectroscopy (EIS) sweeps, circuitry diagrams, chemical formulas, code snippets) are 100% APOLITICAL and SAFE. Never flag them, even if they contain technical labels, engineering abbreviations, or mathematical terminology.
 
 STEP 1: INTENT IDENTIFICATION
 - Determine the primary function/purpose of the combined image and caption (e.g., "Scientific Data Visualization", "Satirical Political Mockery", "Commercial Advertising", "Personal Lifestyle", "Electoral Campaigning").
@@ -166,7 +171,6 @@ def _parse_llm_response(raw: str) -> ModerationResult:
     
     # Strip markdown block wrappers if present
     if cleaned.startswith("```"):
-        # Remove opening fence (including optional language identifier like json)
         first_newline = cleaned.find("\n")
         if first_newline != -1:
             cleaned = cleaned[first_newline:].strip()
@@ -179,19 +183,30 @@ def _parse_llm_response(raw: str) -> ModerationResult:
     try:
         data: dict = json.loads(cleaned)
 
+        intent = str(data.get("intent", "None")).strip()
+        flagged_items = data.get("flagged_items", [])
+        if not isinstance(flagged_items, list):
+            flagged_items = [str(flagged_items)]
+
         reason_tag_raw  = str(data.get("reason_tag", "none")).strip().lower()
         is_flagged_raw  = str(data.get("is_flagged", "No")).strip()
 
         reason_tag = "political" if reason_tag_raw == "political" else "none"
         is_flagged = "Yes" if is_flagged_raw.lower() in {"yes", "true", "1"} else "No"
 
-        # Consistency guard: align both fields
-        if reason_tag == "political" and is_flagged == "No":
+        # Consistency guard: align fields
+        if (reason_tag == "political" or len(flagged_items) > 0) and is_flagged == "No":
             is_flagged = "Yes"
+            reason_tag = "political"
         if reason_tag == "none" and is_flagged == "Yes":
             reason_tag = "political"
 
-        return ModerationResult(reason_tag=reason_tag, is_flagged=is_flagged)
+        return ModerationResult(
+            reason_tag=reason_tag,
+            is_flagged=is_flagged,
+            intent=intent,
+            flagged_items=flagged_items
+        )
 
     except (json.JSONDecodeError, KeyError, ValueError):
         logger.warning("JSON parse failed — falling back to keyword scan. Raw: %r, Cleaned: %r", raw, cleaned)
@@ -200,6 +215,8 @@ def _parse_llm_response(raw: str) -> ModerationResult:
         return ModerationResult(
             reason_tag = "political" if flagged else "none",
             is_flagged = "Yes"       if flagged else "No",
+            intent = "Fallback analysis due to parsing error",
+            flagged_items = ["potential political references (fallback scan)"] if flagged else []
         )
 
 # ─────────────────────────────────────────────────────────────────────────────

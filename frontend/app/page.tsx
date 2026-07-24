@@ -40,6 +40,8 @@ const C = {
 interface ModerationResult {
   reason_tag: "political" | "none" | string;
   is_flagged: "Yes" | "No" | string;
+  intent?: string;
+  flagged_items?: string[];
 }
 type AppState = "idle" | "loading" | "success" | "error";
 
@@ -374,7 +376,7 @@ function ResultCard({ result }: { result: ModerationResult }) {
 
       {/* Data tiles */}
       <div className="p-6" style={{ background: C.blackCard }}>
-        <div className="grid grid-cols-2 gap-4 mb-5">
+        <div className="grid grid-cols-2 gap-4 mb-4">
           <div className="rounded-xl p-4" style={{ background: C.blackSoft, border: `1px solid ${C.border}` }}>
             <p className="text-[10px] uppercase tracking-widest font-semibold mb-2" style={{ color: C.whiteMuted }}>is_flagged</p>
             <p id="is-flagged-value" className="text-3xl font-black" style={{ color: accent }}>{result.is_flagged}</p>
@@ -384,6 +386,37 @@ function ResultCard({ result }: { result: ModerationResult }) {
             <p id="reason-tag-value" className="text-3xl font-black capitalize" style={{ color: C.white }}>{result.reason_tag}</p>
           </div>
         </div>
+
+        {/* intent details */}
+        {result.intent && result.intent !== "None" && (
+          <div className="rounded-xl p-4 mb-4" style={{ background: C.blackSoft, border: `1px solid ${C.border}` }}>
+            <p className="text-[10px] uppercase tracking-widest font-semibold mb-1.5" style={{ color: C.whiteMuted }}>detected_intent</p>
+            <p className="text-sm font-semibold" style={{ color: C.white }}>{result.intent}</p>
+          </div>
+        )}
+
+        {/* flagged items array */}
+        {result.flagged_items && result.flagged_items.length > 0 && (
+          <div className="rounded-xl p-4 mb-4" style={{ background: C.blackSoft, border: `1px solid ${C.border}` }}>
+            <p className="text-[10px] uppercase tracking-widest font-semibold mb-2.5" style={{ color: C.whiteMuted }}>evidence_items</p>
+            <div className="flex flex-wrap gap-2">
+              {result.flagged_items.map((item, idx) => (
+                <span
+                  key={idx}
+                  className="px-2.5 py-1 rounded-lg text-xs font-semibold"
+                  style={{
+                    background: C.blackCard,
+                    border: `1px solid ${flagged ? C.redBorder : C.border}`,
+                    color: flagged ? C.red : C.whiteDim,
+                  }}
+                >
+                  {item}
+                </span>
+              ))}
+            </div>
+          </div>
+        )}
+
         <div
           className="rounded-xl px-4 py-3 flex items-start gap-3"
           style={{ background: accentDim, border: `1px solid ${accentBorder}` }}
