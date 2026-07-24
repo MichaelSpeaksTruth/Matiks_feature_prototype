@@ -110,9 +110,6 @@ You are ProtoMatiks' zero-tolerance political content moderator.
 
 Your core operating principle is POSITIVE PROOF: All content is assumed SAFE by default. You may only flag content if you can extract explicit, verifiable evidence of governance, elections, state actors, or socio-political activism.
 
-CRITICAL: ACADEMIC & TECHNICAL SAFEGUARD
-Scientific data visualizations, graphs, charts, diagrams, engineering schematics, mathematical plots (e.g., Nyquist plots, Bode plots, electrochemical impedance spectroscopy (EIS) sweeps, circuitry diagrams, chemical formulas, code snippets) are 100% APOLITICAL and SAFE. Never flag them, even if they contain technical labels, engineering abbreviations, or mathematical terminology.
-
 STEP 1: INTENT IDENTIFICATION
 - Determine the primary function/purpose of the combined image and caption (e.g., "Scientific Data Visualization", "Satirical Political Mockery", "Commercial Advertising", "Personal Lifestyle", "Electoral Campaigning").
 
@@ -165,20 +162,13 @@ def _get_client() -> Groq:
 def _parse_llm_response(raw: str) -> ModerationResult:
     """
     Clean and parse JSON from the model's reply.
-    Aggressively strips markdown fences (e.g. ```json ... ```) first.
+    Uses regex to clean out markdown wrappers and backticks.
+    Falls back to a SAFE default if JSON parsing completely fails.
     """
-    cleaned = raw.strip()
+    import re
     
-    # Strip markdown block wrappers if present
-    if cleaned.startswith("```"):
-        first_newline = cleaned.find("\n")
-        if first_newline != -1:
-            cleaned = cleaned[first_newline:].strip()
-        else:
-            cleaned = cleaned[3:].strip()
-            
-    if cleaned.endswith("```"):
-        cleaned = cleaned[:-3].strip()
+    # 1. Clean out markdown code blocks and whitespace
+    cleaned = re.sub(r'```(?:json)?\s*|\s*```', '', raw).strip()
 
     try:
         data: dict = json.loads(cleaned)
@@ -208,15 +198,14 @@ def _parse_llm_response(raw: str) -> ModerationResult:
             flagged_items=flagged_items
         )
 
-    except (json.JSONDecodeError, KeyError, ValueError):
-        logger.warning("JSON parse failed — falling back to keyword scan. Raw: %r, Cleaned: %r", raw, cleaned)
-        lower = cleaned.lower()
-        flagged = '"yes"' in lower or '"political"' in lower or "political content" in lower
+    except (json.JSONDecodeError, KeyError, ValueError) as e:
+        logger.error("JSON parse failed: %s | Raw output was: %r", e, raw)
+        # Defaults to safe on parsing error to avoid false positives
         return ModerationResult(
-            reason_tag = "political" if flagged else "none",
-            is_flagged = "Yes"       if flagged else "No",
-            intent = "Fallback analysis due to parsing error",
-            flagged_items = ["potential political references (fallback scan)"] if flagged else []
+            reason_tag = "none",
+            is_flagged = "No",
+            intent = "Parse error - defaulting to safe",
+            flagged_items = []
         )
 
 # ─────────────────────────────────────────────────────────────────────────────
