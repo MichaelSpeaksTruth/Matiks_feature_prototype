@@ -1,29 +1,28 @@
 """
 ProtoMatiks Political Content Moderation Backend — v3
 =====================================================
-Lightweight FastAPI proxy to Groq Vision API.
+Lightweight FastAPI proxy to the Groq Cloud API.
 
 Memory footprint : ~50 MB  (safe on Render 512 MB free tier)
 Dependencies     : fastapi · uvicorn · python-multipart · groq
 
 Pipeline
-────────
+--------
 1. Receive  image (file) + caption (str | None)  via multipart/form-data
 2. Validate MIME type & file size
-3. Base64-encode the image  →  data URI
-4. POST to Groq Vision API with a strict JSON-only system prompt
-5. Parse / normalise the model's response
-6. Return  { "reason_tag": "political"|"none",  "is_flagged": "Yes"|"No" }
+3. Base64-encode the image -> data URI
+4. POST to Groq API with a strict JSON-only system prompt
+5. Parse and normalise the model response through the 4-step recovery pipeline
+6. Return  { "reason_tag", "is_flagged", "intent", "flagged_items" }
 
-Model notes
-───────────
-  Recommended  →  meta-llama/llama-4-maverick-17b-128e-instruct
-                   (multimodal: text + image, 128 k context)
-  Alternative  →  meta-llama/llama-4-scout-17b-16e-instruct
-                   (faster, also multimodal)
+Model
+-----
+  Active model  ->  qwen/qwen3.6-27b
 
-  ⚠️  qwen/qwen3.6-27b is TEXT-ONLY on Groq and cannot process images.
-      Do NOT use it for this endpoint.
+  qwen/qwen3.6-27b is a 27-billion parameter multimodal model that processes
+  both text and image inputs simultaneously in a single inference pass.
+  It supports structured JSON output and emits an explicit <think> reasoning
+  block before the final JSON object, which is why max_tokens is set to 1024.
 """
 
 import os
@@ -271,7 +270,7 @@ async def health():
     response_model = ModerationResult,
     tags           = ["moderation"],
     summary        = "Analyse an image + caption for political content",
-    response_description = "Strict two-field verdict: reason_tag and is_flagged",
+    response_description = "Four-field verdict: reason_tag, is_flagged, intent, flagged_items",
 )
 async def moderate_post(
     image:   UploadFile        = File(..., description="Image to moderate (JPEG/PNG/WebP/GIF — max 20 MB)"),
@@ -282,8 +281,8 @@ async def moderate_post(
 
     1. Validates the MIME type and file size.
     2. Encodes the image to a base64 data URI.
-    3. Sends both to the AI engine with a strict JSON system prompt.
-    4. Returns `{ "reason_tag": "political"|"none", "is_flagged": "Yes"|"No" }`.
+    3. Sends both to Groq (qwen/qwen3.6-27b) with a strict JSON system prompt.
+    4. Returns a four-field verdict: reason_tag, is_flagged, intent, flagged_items.
     """
 
     # ── 1. MIME validation ────────────────────────────────────────────────────
